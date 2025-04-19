@@ -160,14 +160,12 @@ func (app *App) OAuthCallBackHandler(writer http.ResponseWriter, request *http.R
 
 	err = app.Rdb.Del(ctx, "oauth_state:"+state).Err()
 	if err != nil {
-		http.Error(writer, "Failed to delete state from Redis", http.StatusInternalServerError)
-		return
+		log.Fatalf("Failed to delete state from Redis")
 	}
 
 	token, err := app.Config.Exchange(ctx, code)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusBadRequest)
-		return
+		log.Fatalf("Failed to converts an authorization code into a token: %v", err)
 	}
 
 	//log.Println(token.AccessToken)
@@ -202,8 +200,7 @@ func (app *App) DashboardHandler(writer http.ResponseWriter, request *http.Reque
 	var userInfo map[string]interface{}
 	err = json.NewDecoder(resp.Body).Decode(&userInfo)
 	if err != nil {
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
+		log.Fatalf("Failed to decode json response: %v", err)
 	}
 
 	fmt.Fprintf(writer, "<h1>Welcome, %s!<h1><pre>%v<pre>", userInfo["name"], userInfo)
