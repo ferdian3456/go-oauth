@@ -57,6 +57,8 @@ func main() {
 	sessionManager.Cookie.Persist = true
 	sessionManager.Cookie.SameSite = http.SameSiteLaxMode
 	sessionManager.Cookie.Secure = true
+	sessionManager.Cookie.HttpOnly = true
+	sessionManager.IdleTimeout = 3 * time.Hour
 
 	config := &oauth2.Config{
 		ClientID:     koanf.String("OAUTH_CLIENT_ID"),
