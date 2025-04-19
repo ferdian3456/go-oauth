@@ -103,9 +103,7 @@ func generateState() string {
 func (app *App) LoginHandler(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
 	template, err := template.ParseFiles("login.html")
 	if err != nil {
-		log.Printf("Failed to parse template file: %v", err)
-		http.Error(writer, err.Error(), http.StatusInternalServerError)
-		return
+		log.Fatalf("Failed to parse template file: %v", err)
 	}
 
 	template.Execute(writer, nil)
@@ -115,6 +113,11 @@ func (app *App) LogoutHandler(writer http.ResponseWriter, request *http.Request,
 	ctx := request.Context()
 
 	app.Scs.Remove(ctx, "oauth_token")
+
+	err := app.Scs.Destroy(ctx)
+	if err != nil {
+		log.Fatalf("Failed to remove session from session store: %v", err)
+	}
 
 	http.Redirect(writer, request, "/auth/login", http.StatusSeeOther)
 }
