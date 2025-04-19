@@ -22,6 +22,7 @@ import (
 )
 
 type App struct {
+	Koanf  *koanf.Koanf
 	Config *oauth2.Config
 	Rdb    *redis.Client
 	Scs    *scs.SessionManager
@@ -66,6 +67,7 @@ func main() {
 	}
 
 	app := App{
+		Koanf:  koanf,
 		Config: config,
 		Rdb:    rdb,
 		Scs:    sessionManager,
@@ -176,7 +178,7 @@ func (app *App) OAuthCallBackHandler(writer http.ResponseWriter, request *http.R
 
 	app.Scs.Put(ctx, "oauth_token", token.AccessToken)
 
-	http.Redirect(writer, request, "https://a2a4-36-71-85-227.ngrok-free.app/dashboard", http.StatusSeeOther)
+	http.Redirect(writer, request, app.Koanf.String("NGROK_URL")+"/dashboard", http.StatusSeeOther)
 }
 
 func (app *App) DashboardHandler(writer http.ResponseWriter, request *http.Request, params httprouter.Params) {
