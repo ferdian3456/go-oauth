@@ -1,0 +1,14 @@
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6380:6379"
+    command: ["redis-server"]
+#    healthcheck:
+#      test: [ "CMD-SHELL", "redis-cli ping | grep PONG" ]
+#      interval: 1s
+#      timeout: 3s
+#      retries: 5
+
+volumes:
+  redis-data:
