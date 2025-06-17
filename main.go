@@ -16,6 +16,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"html/template"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -37,7 +38,7 @@ func main() {
 	}
 
 	rdb := redis.NewClient(&redis.Options{
-		Addr: "localhost:6380",
+		Addr: "localhost:6389",
 		DB:   0,
 	})
 
@@ -201,13 +202,27 @@ func (app *App) DashboardHandler(writer http.ResponseWriter, request *http.Reque
 
 	defer resp.Body.Close()
 
-	var userInfo map[string]interface{}
-	err = json.NewDecoder(resp.Body).Decode(&userInfo)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		log.Fatalf("Failed to decode json response: %v", err)
+		log.Fatalf("Failed to read all:%v", err)
 	}
 
-	fmt.Fprintf(writer, "<h1>Welcome, %s!<h1><pre>%v<pre>", userInfo["name"], userInfo)
+	var googleUser struct {
+		ID            string `json:"id"`
+		Email         string `json:"email"`
+		VerifiedEmail bool   `json:"verified_email"`
+		Name          string `json:"name"`
+		Picture       string `json:"picture"`
+	}
+
+	err = json.Unmarshal(body, &googleUser)
+	if err != nil {
+		log.Fatalf("Failed to unmarshal :%v", err)
+	}
+
+	fmt.Println(googleUser)
+
+	fmt.Fprintf(writer, "<h1>Welcome, %s!<h1><pre>%v<pre>", googleUser.Name, googleUser)
 }
 
 func (app *App) Middleware(next httprouter.Handle) httprouter.Handle {
